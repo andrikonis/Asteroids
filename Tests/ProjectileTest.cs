@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Reflection;
-using System.Security.Permissions;
 using Asteroids;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SFML.Graphics;

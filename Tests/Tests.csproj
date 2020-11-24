@@ -68,6 +68,7 @@
   <ItemGroup>
     <Compile Include="AsteroidsTest.cs" />
     <Compile Include="AsteroidTest.cs" />
+    <Compile Include="ExtensionTest.cs" />
     <Compile Include="ProjectileTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ShipTest.cs" />
