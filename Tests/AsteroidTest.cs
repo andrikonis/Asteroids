@@ -20,7 +20,7 @@ namespace Tests
         private readonly Vector2f positionShip = new Vector2f(0, 0);
         private const float SideLenght = 10;
 
-        private readonly Vector2f positionProj = new Vector2f(1, 1);
+        private readonly Vector2f positionProj = new Vector2f(0, 0);
         private readonly Vector2f velocityProj = new Vector2f(3, 3);
         private const int Direction = 90;
 
@@ -158,16 +158,54 @@ namespace Tests
             Assert.IsFalse(asteroid.HasCollided(ship), "Asteroid collision with ship not registered");
         }
 
+        //asteroids that collide with projectiles in (0, 0) position
+        private static IEnumerable<object[]> AsteroidCollectionThatCollideWithProjectile
+        {
+            get
+            {
+                return new[]
+                {
+                    new object[] {5, new Vector2f(1, 1)},
+                    new object[] {5, new Vector2f(0, 0)},
+                    new object[] {3, new Vector2f(3, 3)},
+                    new object[] {2, new Vector2f(2, 2)}
+                };
+            }
+        }
+
         [TestMethod]
-        public void ShouldExplode_AsteroidHasCollidedWithProjectile()
+        [DynamicData(nameof(AsteroidCollectionThatCollideWithProjectile))]
+        public void ShouldExplode_AsteroidHasCollidedWithProjectile(int rad, Vector2f pos)
         {
             var projectile = InitializeProjectile(out _);
-            Vector2f pos = new Vector2f(50, 50);
-            var projectileFarAway = InitializeProjectile(out _, pos, velocityProj, Direction);
-            var asteroid = InitializeAsteroid(out _);
+            var asteroid = InitializeAsteroid(out _, pos: pos, rad: rad);
 
             Assert.IsTrue(asteroid.ShouldExplode(projectile), "Asteroid collision with projectile not detected");
-            Assert.IsFalse(asteroid.ShouldExplode(projectileFarAway), "Asteroid collision with projectile detection error");
+        }
+
+        //asteroids that collide with projectiles in (0, 0) position
+        private static IEnumerable<object[]> AsteroidCollectionThatNotCollideWithProjectile
+        {
+            get
+            {
+                return new[]
+                {
+                    new object[] {3, new Vector2f(5, 5)},
+                    new object[] {10, new Vector2f(15, 15)},
+                    new object[] {7, new Vector2f(8, 8)},
+                    new object[] {3, new Vector2f(4, 4)}
+                };
+            }
+        }
+
+        [TestMethod]
+        [DynamicData(nameof(AsteroidCollectionThatNotCollideWithProjectile))]
+        public void ShouldExplode_AsteroidHasNotCollidedWithProjectile(int rad, Vector2f pos)
+        {
+            var projectile = InitializeProjectile(out _);
+            var asteroid = InitializeAsteroid(out _, pos: pos, rad: rad);
+
+            Assert.IsFalse(asteroid.ShouldExplode(projectile), "Asteroid collision with projectile detected incorrectly");
         }
 
         [TestMethod]
