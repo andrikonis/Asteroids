@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SFML.Graphics;
 using SFML.System;
+using SFML.Window;
 using System;
 using System.Collections.Generic;
 
@@ -105,12 +106,6 @@ namespace Tests
         }
 
         [TestMethod]
-        public void CollisionChecksTest()
-        {
-            throw new NotImplementedException();
-        }
-
-        [TestMethod]
         public void DeletionPhaseTest()
         {
             MockData();
@@ -169,13 +164,15 @@ namespace Tests
         [TestMethod]
         public void RestartTest()
         {
-            throw new NotImplementedException();
-        }
+            MockData();
 
-        [TestMethod]
-        public void RunTest()
-        {
-            throw new NotImplementedException();
+            var game = new PrivateObject(_game);
+
+            game.SetField("isPaused", false);
+
+            _game.Restart();
+
+            Assert.IsTrue((bool)game.GetField("isPaused"));
         }
 
         [DataTestMethod]
@@ -264,34 +261,51 @@ namespace Tests
             Assert.IsTrue(dictAsteroids.Count > 0);
         }
 
-        [TestMethod]
-        public void UpdateTest()
+        [DataTestMethod]
+        [DataRow(50)]
+        [DataRow(100)]
+        [DataRow(74)]
+        public void UpdateScoreTest(int score)
         {
-            throw new NotImplementedException();
+            var game = new PrivateObject(_game);
+
+            game.SetField("score", score);
+
+            game.Invoke("UpdateScore");
+
+            var scoreText = (Text)game.GetField("scoreText");
+
+            Assert.IsTrue(scoreText.DisplayedString == $"Score: {score}");
         }
 
-        [TestMethod]
-        public void UpdateAndDrawPhaseTest()
+        [DataTestMethod]
+        [DataRow(Keyboard.Key.A)]
+        [DataRow(Keyboard.Key.Escape)]
+        public void Window_KeyPressedTest(Keyboard.Key key)
         {
-            throw new NotImplementedException();
-        }
+            var game = new PrivateObject(_game, new PrivateType(typeof(Game)));
 
-        [TestMethod]
-        public void UpdateScoreTest()
-        {
-            throw new NotImplementedException();
-        }
+            var isPausedOld = (bool)game.GetField("isPaused");
 
-        [TestMethod]
-        public void Window_ClosedTest()
-        {
-            throw new NotImplementedException();
-        }
+            game.Invoke(
+                "Window_KeyPressed",
+                new object(),
+                new KeyEventArgs(new KeyEvent
+                {
+                    Code = key
+                })
+            );
 
-        [TestMethod]
-        public void Window_KeyPressedTest()
-        {
-            throw new NotImplementedException();
+            var isPausedNew = (bool)game.GetField("isPaused");
+
+            if (key == Keyboard.Key.Escape)
+            {
+                Assert.IsTrue(isPausedOld != isPausedNew);
+            }
+            else
+            {
+                Assert.IsTrue(isPausedOld == isPausedNew);
+            }
         }
 
         private void MockData()
