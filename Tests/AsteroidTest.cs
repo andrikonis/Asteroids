@@ -128,12 +128,34 @@ namespace Tests
         public void HasCollided_CorrectCollisionWithShip(int rad, Vector2f pos)
         {
             var ship = InitializeShip(out _);
-            //Vector2f pos = new Vector2f(50, 50);
-            //var shipFarAway = InitializeShip(out _, pos, SideLenght);
             var asteroid = InitializeAsteroid(out _, rad: rad, pos: pos);
 
             Assert.IsTrue(asteroid.HasCollided(ship) , "Asteroid collision with ship not registered");
-            //Assert.IsFalse(asteroid.HasCollided(shipFarAway), "Asteroid collision with ship registered incorrectly");
+        }
+
+        //ship pos 0,0 sileLenght 10
+        private static IEnumerable<object[]> AsteroidCollectionThatNotCollideWithShip
+        {
+            get
+            {
+                return new[]
+                {
+                    new object[] {5, new Vector2f(1, 1)},
+                    new object[] {5, new Vector2f(0, 0)},
+                    new object[] {3, new Vector2f(3, 3)},
+                    new object[] {2, new Vector2f(2, 2)}
+                };
+            }
+        }
+
+        [TestMethod]
+        [DynamicData(nameof(AsteroidCollectionThatNotCollideWithShip))]
+        public void HasCollided_CorrectNotCollisionWithShip(int rad, Vector2f pos)
+        {
+            var ship = InitializeShip(out _);
+            var asteroid = InitializeAsteroid(out _, rad: rad, pos: pos);
+
+            Assert.IsFalse(asteroid.HasCollided(ship), "Asteroid collision with ship not registered");
         }
 
         [TestMethod]
