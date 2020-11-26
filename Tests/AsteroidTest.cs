@@ -17,7 +17,7 @@ namespace Tests
         private readonly Vector2f velocity = new Vector2f(3, 3);
         private const int Radius = 20;
 
-        private readonly Vector2f positionShip = new Vector2f(1, 1);
+        private readonly Vector2f positionShip = new Vector2f(0, 0);
         private const float SideLenght = 10;
 
         private readonly Vector2f positionProj = new Vector2f(1, 1);
@@ -34,6 +34,21 @@ namespace Tests
                 ?.GetValue(null);
 
             Assert.AreEqual($"A{(long)count - 1}", id, "Unexpected Id");
+        }
+
+        [TestMethod]
+        public void Init_VelocityIsLessWithBiggerRadius()
+        {
+            InitializeAsteroid(out var asteroidTemp, rad: 1);
+            var asteroidVelocityBefore = (Vector2f)asteroidTemp.GetFieldOrProperty("velocity");
+            for (int i = 2; i < Radius * 3; i++)
+            {
+                InitializeAsteroid(out var asteroid, rad: i);
+                var asteroidVelocity = (Vector2f)asteroid.GetFieldOrProperty("velocity");
+                Assert.IsTrue(asteroidVelocityBefore.X > asteroidVelocity.X, "Unexpected velocity");
+                Assert.IsTrue(asteroidVelocityBefore.Y > asteroidVelocity.Y, "Unexpected velocity");
+                asteroidVelocityBefore = asteroidVelocity;
+            }
         }
 
         [TestMethod]
@@ -76,14 +91,14 @@ namespace Tests
         {
             var asteroid = InitializeAsteroid(out _);
             var previousPosition = asteroid.GetPosition();
-            asteroid.Update(1);
+            asteroid.Update(3);
             var newPosition = asteroid.GetPosition();
             var previousDiff = newPosition - previousPosition;
 
-            for (var i = 0; i < 100; i++)
+            for (var i = 0; i < 30; i++)
             {
                 previousPosition = newPosition;
-                asteroid.Update(1);
+                asteroid.Update(3);
                 newPosition = asteroid.GetPosition();
                 var newDiff = newPosition - previousPosition;
 
@@ -93,22 +108,44 @@ namespace Tests
             }
         }
 
+        //ship pos 0,0 sileLenght 10
+        private static IEnumerable<object[]> AsteroidCollectionThatCollideWithShip
+        {
+            get
+            {
+                return new[]
+                {
+                    new object[] {9, new Vector2f(1, 1)},
+                    new object[] {10, new Vector2f(10, 10)},
+                    new object[] {7, new Vector2f(3, 3)},
+                    new object[] {8, new Vector2f(2, 2)}
+                };
+            }
+        }
+
         [TestMethod]
-        public void HasCollided_CorrectCollision()
+        [DynamicData(nameof(AsteroidCollectionThatCollideWithShip))]
+        public void HasCollided_CorrectCollisionWithShip(int rad, Vector2f pos)
         {
             var ship = InitializeShip(out _);
-            var asteroid = InitializeAsteroid(out _);
+            //Vector2f pos = new Vector2f(50, 50);
+            //var shipFarAway = InitializeShip(out _, pos, SideLenght);
+            var asteroid = InitializeAsteroid(out _, rad: rad, pos: pos);
 
-            Assert.AreEqual(true, asteroid.HasCollided(ship) , "Asteroid collision with ship not registered");
+            Assert.IsTrue(asteroid.HasCollided(ship) , "Asteroid collision with ship not registered");
+            //Assert.IsFalse(asteroid.HasCollided(shipFarAway), "Asteroid collision with ship registered incorrectly");
         }
 
         [TestMethod]
         public void ShouldExplode_AsteroidHasCollidedWithProjectile()
         {
             var projectile = InitializeProjectile(out _);
+            Vector2f pos = new Vector2f(50, 50);
+            var projectileFarAway = InitializeProjectile(out _, pos, velocityProj, Direction);
             var asteroid = InitializeAsteroid(out _);
 
-            Assert.AreEqual(true, asteroid.ShouldExplode(projectile), "Asteroid collision with projectile not detected");
+            Assert.IsTrue(asteroid.ShouldExplode(projectile), "Asteroid collision with projectile not detected");
+            Assert.IsFalse(asteroid.ShouldExplode(projectileFarAway), "Asteroid collision with projectile detection error");
         }
 
         [TestMethod]
@@ -120,12 +157,12 @@ namespace Tests
             for (int i = (int)breakRadius + 1; i < (int)breakRadius * 3; i++)
             {
                 var asteroid = InitializeAsteroid(out _, position, velocity, i);
-                Assert.AreEqual(true, asteroid.WillBreakApart(), "Asteroid not breaking apart when radius is more then min break radius");
+                Assert.IsTrue(asteroid.WillBreakApart(), "Asteroid not breaking apart when radius is more then min break radius");
             }
             for (int i = 0; i < (int)breakRadius + 1; i++)
             {
                 var asteroid = InitializeAsteroid(out _, position, velocity, i);
-                Assert.AreEqual(false, asteroid.WillBreakApart(), "Asteroid breaking apart when radius is less then min break radius");
+                Assert.IsFalse(asteroid.WillBreakApart(), "Asteroid breaking apart when radius is less then min break radius");
             }
 
         }
